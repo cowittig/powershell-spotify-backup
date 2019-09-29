@@ -1,1 +1,13 @@
-Hello World
+<!doctype html>
+
+<html>    
+    <head></head>
+    <body></body>
+    <script type="text/javascript">
+        let url = new URL(window.location.href);
+        let searchParams = new URLSearchParams(url.search);
+        for (let param of searchParams) {
+            document.body.innerHTML += param[0] + ": " + param[1] + "<br />"
+        }
+    </script>
+</html>
