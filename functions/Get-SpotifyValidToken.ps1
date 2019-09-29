@@ -11,13 +11,13 @@ function Get-SpotifyValidToken {
         $accessRequestBody = @{
             grant_type='refresh_token';
             refresh_token=$settings.refresh_token;
-            client_id=$clientId;
-            client_secret=$clientSecret
+            client_id=$settings.client_id;
+            client_secret=$settings.client_secret
         }
         $accessResponse = Invoke-WebRequest -Uri $accessRequestUri -Method $accessRequestMethod -Body $accessRequestBody | ConvertFrom-Json
         $accessToken = $accessResponse.access_token
 
-        $settings.accessToken = $accessToken
+        $settings.access_token = $accessToken
         $settings.expiration_date = ((Get-Date).AddSeconds(3480)).ToString($dateFormatString)
 
         $settings | ConvertTo-Json | Out-File settings.json
