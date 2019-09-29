@@ -4,6 +4,8 @@
     Author = 'Constantin Wittig'
     Description = 'Backup your Spotify playlists to a single JSON file or multiple 
         JSON files per playlist.'
-    NestedModules = @()
-    FunctionsToExport = @()
+    NestedModules = 
+        '.\functions\Set-SpotifyAccessTokens.ps1'
+    FunctionsToExport =
+        'Set-SpotifyAccessTokens'
 }
