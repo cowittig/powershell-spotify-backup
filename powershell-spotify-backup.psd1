@@ -5,7 +5,10 @@
     Description = 'Backup your Spotify playlists to a single JSON file or multiple 
         JSON files per playlist.'
     NestedModules = 
-        '.\functions\Set-SpotifyAccessTokens.ps1'
+        '.\functions\Set-SpotifyAccessTokens.ps1',
+        '.\functions\Get-SpotifyValidToken.ps1',
+        '.\functions\Get-SpotifyUserPlaylists.ps1'
     FunctionsToExport =
-        'Set-SpotifyAccessTokens'
+        'Set-SpotifyAccessTokens',
+        'Get-SpotifyUserPlaylists'
 }
