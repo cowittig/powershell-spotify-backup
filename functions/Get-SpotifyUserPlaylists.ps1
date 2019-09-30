@@ -1,5 +1,18 @@
 function Get-SpotifyUserPlaylists {
-    param ()
+    param (
+        [switch] $fullFile,
+        [switch] $splitFile,
+        [string] $outDir = '.\'
+    )
+
+    if( -Not $fullFile -And -Not $splitFile ) {
+        Write-Host "specify -FullFile and / or -SplitFile"
+        return
+    }
+
+    if( -Not (Test-Path $outDir) ) {
+        md $outDir | Out-Null
+    }
 
     $token = Get-SpotifyValidToken
     
@@ -11,27 +24,43 @@ function Get-SpotifyUserPlaylists {
 
     while( $playlistsResponse.next ) {
         $playlistsResponse = Invoke-WebRequest -Uri $playlistsResponse.next -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
-        $playlistData = $playlistData + $playlistsResponse.items
+        $playlistData += $playlistsResponse.items
     }
     
-    $playlists = @()
+    $playlists = [pscustomobject]@{
+        playlists=@()
+    }
     $playlistData | ForEach-Object -Process {
-        $tracksResponse = Invoke-WebRequest -Uri "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next,items(track(name,uri,track_number,album(name,uri),artists))" -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
+        $tracksResponse = Invoke-WebRequest -Uri "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next,items(track(name,uri,album(name,uri),artists))" -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
         $trackData = $tracksResponse.items
         while( $tracksResponse.next ) {
             $tracksResponse = Invoke-WebRequest -Uri $tracksResponse.next -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
-            $trackData = $trackData + $tracksResponse.items
+            $trackData += $tracksResponse.items
         }
         $trackData | ForEach-Object -Process {
             $artistsSmall = @();
             $_.track.artists | ForEach-Object -Process { 
-                $artistsSmall = $artistsSmall + @(@{name=$_.name; uri=$_.uri})
+                $artistsSmall += @(@{name=$_.name; uri=$_.uri})
             }
             $_.track.artists = $artistsSmall
         }
 
-        $playlists = $playlists + @(@{ name=$_.name; uri=$_.uri; trackCount=$_.tracks.total; tracks= @() + $trackData})
+        $currPlaylist = [pscustomobject]@{
+            name=$_.name;
+            uri=$_.uri;
+            trackCount=$_.tracks.total;
+            tracks = $trackData
+        }
+        $playlists.playlists += $currPlaylist
+
+        if( $splitFile ) {
+            $outFilePath = (Join-Path -Path $outDir -ChildPath "$($_.id).json")
+            $currPlaylist | ConvertTo-Json -Depth 10 | Out-File $outFilePath
+        }
     }    
 
-    $playlists | ConvertTo-Json -Depth 10 | Out-File playlists.json
+    if( $fullFile ) {
+        $outFilePath = (Join-Path -Path $outDir -ChildPath playlists.json)
+        $playlists | ConvertTo-Json -Depth 10 | Out-File $outFilePath
+    }
 }
