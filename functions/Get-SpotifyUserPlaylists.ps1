@@ -6,7 +6,7 @@ function Get-SpotifyUserPlaylists {
     )
 
     if( -Not $fullFile -And -Not $splitFile ) {
-        Write-Host "specify -FullFile and / or -SplitFile"
+        Write-Host "Use -FullFile for a single file or -SplitFile for one file per playlists. You can also use both."
         return
     }
 
@@ -57,10 +57,15 @@ function Get-SpotifyUserPlaylists {
             $outFilePath = (Join-Path -Path $outDir -ChildPath "$($_.id).json")
             $currPlaylist | ConvertTo-Json -Depth 10 | Out-File $outFilePath
         }
-    }    
+    }  
+    
+    if( $splitFile ) {
+        $outFilePath = (Join-Path -Path $outDir -ChildPath playlists.index)
+        $playlistData | ForEach-Object { "id: $($_.id)    name: $($_.name)" } | Out-File $outFilePath
+    }
 
     if( $fullFile ) {
-        $outFilePath = (Join-Path -Path $outDir -ChildPath playlists.json)
+        $outFilePath = (Join-Path -Path $outDir -ChildPath playlist-backup.json)
         $playlists | ConvertTo-Json -Depth 10 | Out-File $outFilePath
     }
 }
