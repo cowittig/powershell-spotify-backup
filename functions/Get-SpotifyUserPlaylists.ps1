@@ -39,10 +39,12 @@ function Get-SpotifyUserPlaylists {
         }
         $trackData | ForEach-Object -Process {
             $artistsSmall = @();
-            $_.track.artists | ForEach-Object -Process { 
-                $artistsSmall += @(@{name=$_.name; uri=$_.uri})
+            if( $_.track.artists ) {
+                $_.track.artists | ForEach-Object -Process { 
+                    $artistsSmall += @(@{name=$_.name; uri=$_.uri})
+                }
+                $_.track.artists = $artistsSmall
             }
-            $_.track.artists = $artistsSmall
         }
 
         $currPlaylist = [pscustomobject]@{
