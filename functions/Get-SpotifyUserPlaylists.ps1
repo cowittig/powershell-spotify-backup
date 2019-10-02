@@ -11,7 +11,7 @@ function Get-SpotifyUserPlaylists {
     }
 
     if( -Not (Test-Path $outDir) ) {
-        md $outDir | Out-Null
+        mkdir $outDir | Out-Null
     }
 
     $token = Get-SpotifyValidToken
@@ -19,11 +19,13 @@ function Get-SpotifyUserPlaylists {
     $userResponse = Invoke-WebRequest -Uri "https://api.spotify.com/v1/me" -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
     $userId = $userResponse.id
 
-    $playlistsResponse = Invoke-WebRequest -Uri "https://api.spotify.com/v1/users/$userId/playlists?limit=50" -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
+    Invoke-WebRequest -Uri "https://api.spotify.com/v1/users/$userId/playlists?limit=50" -Method GET -Headers @{Authorization="Bearer $token"} -OutFile .\tmp.txt
+    $playlistsResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
     $playlistData = $playlistsResponse.items
 
     while( $playlistsResponse.next ) {
-        $playlistsResponse = Invoke-WebRequest -Uri $playlistsResponse.next -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
+        Invoke-WebRequest -Uri $playlistsResponse.next -Method GET -Headers @{Authorization="Bearer $token"} -OutFile .\tmp.txt
+        $playlistsResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
         $playlistData += $playlistsResponse.items
     }
     
@@ -31,12 +33,15 @@ function Get-SpotifyUserPlaylists {
         playlists=@()
     }
     $playlistData | ForEach-Object -Process {
-        $tracksResponse = Invoke-WebRequest -Uri "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next,items(track(name,uri,album(name,uri),artists))" -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
+        Invoke-WebRequest -Uri "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next,items(track(name,uri,album(name,uri),artists))" -Method GET -Headers @{Authorization="Bearer $token"} -OutFile .\tmp.txt
+        $tracksResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
         $trackData = $tracksResponse.items
+
         while( $tracksResponse.next ) {
             $tracksResponse = Invoke-WebRequest -Uri $tracksResponse.next -Method GET -Headers @{Authorization="Bearer $token"} | ConvertFrom-Json
             $trackData += $tracksResponse.items
         }
+
         $trackData | ForEach-Object -Process {
             $artistsSmall = @();
             if( $_.track.artists ) {
@@ -70,4 +75,6 @@ function Get-SpotifyUserPlaylists {
         $outFilePath = (Join-Path -Path $outDir -ChildPath playlist-backup.json)
         $playlists | ConvertTo-Json -Depth 10 | Out-File $outFilePath
     }
+
+    Remove-Item ".\tmp.txt" -Force
 }
