@@ -1,17 +1,17 @@
 function Get-SpotifyUserPlaylists {
     param (
-        [switch] $fullFile,
-        [switch] $splitFile,
-        [string] $outDir = '.\'
+        [switch] $FullFile,
+        [switch] $SplitFile,
+        [string] $OutDir = '.\'
     )
 
-    if( -Not $fullFile -And -Not $splitFile ) {
+    if( -Not $FullFile -And -Not $SplitFile ) {
         Write-Host "Use -FullFile for a single file or -SplitFile for one file per playlists. You can also use both."
         return
     }
 
-    if( -Not (Test-Path $outDir) ) {
-        mkdir $outDir | Out-Null
+    if( -Not (Test-Path $OutDir) ) {
+        mkdir $OutDir | Out-Null
     }
 
     $token = Get-SpotifyValidToken
@@ -60,19 +60,19 @@ function Get-SpotifyUserPlaylists {
         }
         $playlists.playlists += $currPlaylist
 
-        if( $splitFile ) {
-            $outFilePath = (Join-Path -Path $outDir -ChildPath "$($_.id).json")
+        if( $SplitFile ) {
+            $outFilePath = (Join-Path -Path $OutDir -ChildPath "$($_.id).json")
             $currPlaylist | ConvertTo-Json -Depth 10 -Compress | Out-File $outFilePath
         }
     }  
     
-    if( $splitFile ) {
-        $outFilePath = (Join-Path -Path $outDir -ChildPath playlists.index)
+    if( $SplitFile ) {
+        $outFilePath = (Join-Path -Path $OutDir -ChildPath playlists.index)
         $playlistData | ForEach-Object { "id: $($_.id)    name: $($_.name)" } | Out-File $outFilePath
     }
 
-    if( $fullFile ) {
-        $outFilePath = (Join-Path -Path $outDir -ChildPath playlist-backup.json)
+    if( $FullFile ) {
+        $outFilePath = (Join-Path -Path $OutDir -ChildPath playlist-backup.json)
         $playlists | ConvertTo-Json -Depth 10 -Compress | Out-File $outFilePath
     }
 
