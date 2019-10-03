@@ -62,7 +62,7 @@ function Get-SpotifyUserPlaylists {
 
         if( $splitFile ) {
             $outFilePath = (Join-Path -Path $outDir -ChildPath "$($_.id).json")
-            $currPlaylist | ConvertTo-Json -Depth 10 | Out-File $outFilePath
+            $currPlaylist | ConvertTo-Json -Depth 10 -Compress | Out-File $outFilePath
         }
     }  
     
@@ -73,7 +73,7 @@ function Get-SpotifyUserPlaylists {
 
     if( $fullFile ) {
         $outFilePath = (Join-Path -Path $outDir -ChildPath playlist-backup.json)
-        $playlists | ConvertTo-Json -Depth 10 | Out-File $outFilePath
+        $playlists | ConvertTo-Json -Depth 10 -Compress | Out-File $outFilePath
     }
 
     Remove-Item ".\tmp.txt" -Force
