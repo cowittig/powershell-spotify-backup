@@ -1,44 +1,44 @@
 function Set-SpotifyAccessTokens {
     param (
-        [string]$clientId,
-        [string]$clientSecret,
-        [string]$redirectUri
+        [string] $ClientId,
+        [string] $ClientSecret,
+        [string] $RedirectUri
     )
-    $dateFormatString = "yyyy-MM-dd HH-mm-ss"
+    $DateFormatString = "yyyy-MM-dd HH-mm-ss"
 
     Add-Type -AssemblyName System.Web
-    $redirectUri = [System.Web.HttpUtility]::UrlEncode($redirectUri)
-    $responseType = 'code'
-    $scope = 'playlist-read-private'
-    $requestUri = "https://accounts.spotify.com/authorize?client_id=$clientId&response_type=$responseType&redirect_uri=$redirectUri&scope=$scope"
+    $RedirectUri = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
+    $ResponseType = 'code'
+    $Scope = 'playlist-read-private'
+    $RequestUri = "https://accounts.spotify.com/authorize?client_id=$ClientId&response_type=$ResponseType&redirect_uri=$RedirectUri&scope=$Scope"
 
-    Start-Process $requestUri
-    $authCode = Read-Host "Enter the authorization code"
+    Start-Process $RequestUri
+    $AuthCode = Read-Host "Enter the authorization code"
     
-    $accessRequestUri = 'https://accounts.spotify.com/api/token'
-    $accessRequestMethod = 'POST'
-    $accessRequestContentType = 'application/x-www-form-urlencoded'
-    $accessRequestBody = @{
+    $AccessRequestUri = 'https://accounts.spotify.com/api/token'
+    $AccessRequestMethod = 'POST'
+    $AccessRequestContentType = 'application/x-www-form-urlencoded'
+    $AccessRequestBody = @{
         grant_type='authorization_code';
-        code=$authCode;
+        code=$AuthCode;
         # redirect_uri must be decoded here!
-        redirect_uri=[System.Web.HttpUtility]::UrlDecode($redirectUri);
-        client_id=$clientId;
-        client_secret=$clientSecret
-    }
-    $accessResponse = Invoke-WebRequest -Uri $accessRequestUri -Method $accessRequestMethod -ContentType $accessRequestContentType -Body $accessRequestBody | ConvertFrom-Json
+        redirect_uri=[System.Web.HttpUtility]::UrlDecode($RedirectUri);
+        client_id=$ClientId;
+        client_secret=$ClientSecret
+     }
+    $AccessResponse = Invoke-WebRequest -Uri $AccessRequestUri -Method $AccessRequestMethod -ContentType $AccessRequestContentType -Body $AccessRequestBody | ConvertFrom-Json
 
-    $accessToken = $accessResponse.access_token
-    $refreshToken = $accessResponse.refresh_token
+    $AccessToken = $AccessResponse.access_token
+    $RefreshToken = $AccessResponse.refresh_token
 
-    $expirationDate = ((Get-Date).AddSeconds(3480)).ToString($dateFormatString)
+    $ExpirationDate = ((Get-Date).AddSeconds(3480)).ToString($DateFormatString)
 
     @{
-        client_id=$clientId;
-        client_secret=$clientSecret;
-        access_token=$accessToken;
-        refresh_token=$refreshToken;
-        expiration_date=$expirationDate
+        client_id=$ClientId;
+        client_secret=$ClientSecret;
+        access_token= $AccessToken;
+        refresh_token=$RefreshToken;
+        expiration_date=$ExpirationDate
     } | ConvertTo-Json | Out-File settings.json
 
 }
