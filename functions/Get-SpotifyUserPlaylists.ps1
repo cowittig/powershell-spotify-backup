@@ -6,7 +6,8 @@ function Get-SpotifyUserPlaylists {
     )
 
     if( -not $FullFile -and -not $SplitFile ) {
-        Write-Host "Use -FullFile for a single file or -SplitFile for one file per playlists. You can also use both."
+        Write-Host "Use -FullFile for a single file or -SplitFile for one file per playlists." +
+                   " You can also use both."
         return
     }
 
@@ -16,15 +17,32 @@ function Get-SpotifyUserPlaylists {
 
     $Token = Get-SpotifyValidToken
     
-    $UserResponse = Invoke-WebRequest -Uri "https://api.spotify.com/v1/me" -Method GET -Headers @{Authorization="Bearer $Token"} | ConvertFrom-Json
+    $UserRequestParams = @{
+        Uri = "https://api.spotify.com/v1/me"
+        Method = "GET"
+        Headers = @{ Authorization = "Bearer $Token" }
+    }
+    $UserResponse = Invoke-WebRequest @UserRequestParams | ConvertFrom-Json
     $UserId = $UserResponse.Id
 
-    Invoke-WebRequest -Uri "https://api.spotify.com/v1/users/$UserId/playlists?limit=50" -Method GET -Headers @{Authorization="Bearer $Token"} -OutFile .\tmp.txt
+    $PlaylistsRequestParams = @{
+        Uri = "https://api.spotify.com/v1/users/$UserId/playlists?limit=50"
+        Method = "GET"
+        Headers = @{ Authorization = "Bearer $Token" }
+        OutFile = '.\tmp.txt'
+    }
+    Invoke-WebRequest @PlaylistsRequestParams
     $PlaylistsResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
     $PlaylistData = $PlaylistsResponse.Items
 
     while( $PlaylistsResponse.Next ) {
-        Invoke-WebRequest -Uri $PlaylistsResponse.Next -Method GET -Headers @{Authorization="Bearer $Token"} -OutFile .\tmp.txt
+        $PlaylistsRequestParams = @{
+            Uri = $PlaylistsResponse.Next
+            Method = "GET"
+            Headers = @{ Authorization = "Bearer $Token" }
+            OutFile = '.\tmp.txt'
+        }
+        Invoke-WebRequest @PlaylistsRequestParams
         $PlaylistsResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
         $PlaylistData += $PlaylistsResponse.Items
     }
@@ -33,12 +51,24 @@ function Get-SpotifyUserPlaylists {
         playlists=@()
     }
     $PlaylistData | ForEach-Object -Process {
-        Invoke-WebRequest -Uri "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next,items(track(name,uri,album(name,uri),artists))" -Method GET -Headers @{Authorization="Bearer $Token"} -OutFile .\tmp.txt
+        $TracksRequestParams = @{
+            Uri = "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next," + 
+                  "items(track(name,uri,album(name,uri),artists))"
+            Method = "GET"
+            Headers = @{ Authorization = "Bearer $Token" }
+            OutFile = '.\tmp.txt'
+        }
+        Invoke-WebRequest @TracksRequestParams
         $TracksResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
         $TrackData = $TracksResponse.Items
 
         while( $TracksResponse.Next ) {
-            $TracksResponse = Invoke-WebRequest -Uri $TracksResponse.Next -Method GET -Headers @{Authorization="Bearer $Token"} | ConvertFrom-Json
+            $TracksRequestParams = @{
+                Uri = $TracksResponse.Next
+                Method = "GET"
+                Headers = @{ Authorization = "Bearer $Token" }
+            }
+            $TracksResponse = Invoke-WebRequest @TracksRequestParams | ConvertFrom-Json
             $TrackData += $TracksResponse.Items
         }
 

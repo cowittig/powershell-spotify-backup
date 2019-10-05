@@ -10,23 +10,26 @@ function Set-SpotifyAccessTokens {
     $RedirectUri = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
     $ResponseType = 'code'
     $Scope = 'playlist-read-private'
-    $RequestUri = "https://accounts.spotify.com/authorize?client_id=$ClientId&response_type=$ResponseType&redirect_uri=$RedirectUri&scope=$Scope"
+    $RequestUri = "https://accounts.spotify.com/authorize?client_id=$ClientId&response_type=$ResponseType" +
+                  "&redirect_uri=$RedirectUri&scope=$Scope"
 
     Start-Process $RequestUri
     $AuthCode = Read-Host "Enter the authorization code"
     
-    $AccessRequestUri = 'https://accounts.spotify.com/api/token'
-    $AccessRequestMethod = 'POST'
-    $AccessRequestContentType = 'application/x-www-form-urlencoded'
-    $AccessRequestBody = @{
-        grant_type='authorization_code';
-        code=$AuthCode;
-        # redirect_uri must be decoded here!
-        redirect_uri=[System.Web.HttpUtility]::UrlDecode($RedirectUri);
-        client_id=$ClientId;
-        client_secret=$ClientSecret
-     }
-    $AccessResponse = Invoke-WebRequest -Uri $AccessRequestUri -Method $AccessRequestMethod -ContentType $AccessRequestContentType -Body $AccessRequestBody | ConvertFrom-Json
+    $AccessRequestParams = @{
+        Uri = 'https://accounts.spotify.com/api/token'
+        Method = 'POST'
+        ContentType = 'application/x-www-form-urlencoded' 
+        Body = @{
+            grant_type='authorization_code';
+            code=$AuthCode;
+            # redirect_uri must be decoded here!
+            redirect_uri=[System.Web.HttpUtility]::UrlDecode($RedirectUri);
+            client_id=$ClientId;
+            client_secret=$ClientSecret
+         }
+    }
+    $AccessResponse = Invoke-WebRequest @AccessRequestParams | ConvertFrom-Json
 
     $AccessToken = $AccessResponse.access_token
     $RefreshToken = $AccessResponse.refresh_token
