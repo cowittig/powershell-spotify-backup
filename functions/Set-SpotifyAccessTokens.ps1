@@ -50,11 +50,11 @@ function Set-SpotifyAccessTokens {
     $SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath 'settings.json')
 
     Add-Type -AssemblyName System.Web
-    $RedirectUri = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
+    $RedirectUriEncoded = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
     $ResponseType = 'code'
     $Scope = 'playlist-read-private'
     $RequestUri = "https://accounts.spotify.com/authorize?client_id=$ClientId&response_type=$ResponseType" +
-                  "&redirect_uri=$RedirectUri&scope=$Scope"
+                  "&redirect_uri=$RedirectUriEncoded&scope=$Scope"
 
     Start-Process $RequestUri
     $AuthCode = Read-Host "Enter the authorization code"
@@ -66,8 +66,7 @@ function Set-SpotifyAccessTokens {
         Body = @{
             grant_type='authorization_code';
             code=$AuthCode;
-            # redirect_uri must be decoded here!
-            redirect_uri=[System.Web.HttpUtility]::UrlDecode($RedirectUri);
+            redirect_uri=$RedirectUri
             client_id=$ClientId;
             client_secret=$ClientSecret
          }
