@@ -1,7 +1,15 @@
 function Set-SpotifyAccessTokens {
     param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string] $ClientId,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string] $ClientSecret,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string] $RedirectUri
     )
     $DateFormatString = "yyyy-MM-dd HH-mm-ss"
