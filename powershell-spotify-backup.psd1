@@ -7,8 +7,8 @@
     NestedModules = 
         '.\functions\Set-SpotifyAccessTokens.ps1',
         '.\functions\Get-SpotifyValidToken.ps1',
-        '.\functions\Get-SpotifyUserPlaylists.ps1'
+        '.\functions\Backup-SpotifyUserPlaylists.ps1'
     FunctionsToExport =
         'Set-SpotifyAccessTokens',
-        'Get-SpotifyUserPlaylists'
+        'Backup-SpotifyUserPlaylists'
 }

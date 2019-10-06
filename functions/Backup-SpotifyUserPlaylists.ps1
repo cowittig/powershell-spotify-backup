@@ -1,4 +1,4 @@
-function Get-SpotifyUserPlaylists {
+function Backup-SpotifyUserPlaylists {
     param (
         [ValidateSet('single', 'split', 'single-split')]
         [string] $Mode = 'single',
