@@ -20,7 +20,7 @@ function Get-SpotifyValidToken {
     [CmdLetBinding()]
     param ()
 
-    $DateFormatString = "yyyy-MM-dd HH-mm-ss"
+    $DateFormatString = 'yyyy-MM-dd HH-mm-ss'
     $SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath 'settings.json')
     
     $Settings = Get-Content $SettingsPath | ConvertFrom-Json

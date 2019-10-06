@@ -59,16 +59,16 @@ function Backup-SpotifyUserPlaylists {
     $Token = Get-SpotifyValidToken
     
     $UserRequestParams = @{
-        Uri = "https://api.spotify.com/v1/me"
-        Method = "GET"
+        Uri = 'https://api.spotify.com/v1/me'
+        Method = 'GET'
         Headers = @{ Authorization = "Bearer $Token" }
     }
     $UserResponse = Invoke-WebRequest @UserRequestParams | ConvertFrom-Json
     $UserId = $UserResponse.Id
 
     $PlaylistsRequestParams = @{
-        Uri = "https://api.spotify.com/v1/users/$UserId/playlists?limit=50"
-        Method = "GET"
+        Uri = 'https://api.spotify.com/v1/users/$UserId/playlists?limit=50'
+        Method = 'GET'
         Headers = @{ Authorization = "Bearer $Token" }
         OutFile = $TmpFilePath
     }
@@ -79,7 +79,7 @@ function Backup-SpotifyUserPlaylists {
     while( $PlaylistsResponse.Next ) {
         $PlaylistsRequestParams = @{
             Uri = $PlaylistsResponse.Next
-            Method = "GET"
+            Method = 'GET'
             Headers = @{ Authorization = "Bearer $Token" }
             OutFile = $TmpFilePath
         }
@@ -93,9 +93,9 @@ function Backup-SpotifyUserPlaylists {
     }
     $PlaylistData | ForEach-Object -Process {
         $TracksRequestParams = @{
-            Uri = "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next," + 
-                  "items(track(name,uri,album(name,uri),artists))"
-            Method = "GET"
+            Uri = 'https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next,' + 
+                  'items(track(name,uri,album(name,uri),artists))'
+            Method = 'GET'
             Headers = @{ Authorization = "Bearer $Token" }
             OutFile = $TmpFilePath
         }
@@ -106,7 +106,7 @@ function Backup-SpotifyUserPlaylists {
         while( $TracksResponse.Next ) {
             $TracksRequestParams = @{
                 Uri = $TracksResponse.Next
-                Method = "GET"
+                Method = 'GET'
                 Headers = @{ Authorization = "Bearer $Token" }
             }
             $TracksResponse = Invoke-WebRequest @TracksRequestParams | ConvertFrom-Json

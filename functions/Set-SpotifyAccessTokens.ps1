@@ -46,7 +46,7 @@ function Set-SpotifyAccessTokens {
         [ValidateNotNullOrEmpty()]
         [string] $RedirectUri
     )
-    $DateFormatString = "yyyy-MM-dd HH-mm-ss"
+    $DateFormatString = 'yyyy-MM-dd HH-mm-ss'
     $SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath 'settings.json')
 
     $RedirectUriEncoded = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
@@ -56,7 +56,7 @@ function Set-SpotifyAccessTokens {
                   "&redirect_uri=$RedirectUriEncoded&scope=$Scope"
 
     Start-Process $RequestUri
-    $AuthCode = Read-Host "Enter the authorization code"
+    $AuthCode = Read-Host 'Enter the authorization code'
     
     $AccessRequestParams = @{
         Uri = 'https://accounts.spotify.com/api/token'
