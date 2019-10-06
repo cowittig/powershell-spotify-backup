@@ -54,6 +54,8 @@ function Backup-SpotifyUserPlaylists {
         mkdir $OutDir | Out-Null        # do not pollute output with mkdir output
     }
 
+    $TmpFilePath = (Join-Path -Path $PSScriptRoot -ChildPath 'tmp.txt')
+
     $Token = Get-SpotifyValidToken
     
     $UserRequestParams = @{
@@ -68,10 +70,10 @@ function Backup-SpotifyUserPlaylists {
         Uri = "https://api.spotify.com/v1/users/$UserId/playlists?limit=50"
         Method = "GET"
         Headers = @{ Authorization = "Bearer $Token" }
-        OutFile = '.\tmp.txt'
+        OutFile = $TmpFilePath
     }
     Invoke-WebRequest @PlaylistsRequestParams
-    $PlaylistsResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
+    $PlaylistsResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
     $PlaylistData = $PlaylistsResponse.Items
 
     while( $PlaylistsResponse.Next ) {
@@ -79,10 +81,10 @@ function Backup-SpotifyUserPlaylists {
             Uri = $PlaylistsResponse.Next
             Method = "GET"
             Headers = @{ Authorization = "Bearer $Token" }
-            OutFile = '.\tmp.txt'
+            OutFile = $TmpFilePath
         }
         Invoke-WebRequest @PlaylistsRequestParams
-        $PlaylistsResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
+        $PlaylistsResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
         $PlaylistData += $PlaylistsResponse.Items
     }
     
@@ -95,10 +97,10 @@ function Backup-SpotifyUserPlaylists {
                   "items(track(name,uri,album(name,uri),artists))"
             Method = "GET"
             Headers = @{ Authorization = "Bearer $Token" }
-            OutFile = '.\tmp.txt'
+            OutFile = $TmpFilePath
         }
         Invoke-WebRequest @TracksRequestParams
-        $TracksResponse = Get-Content ".\tmp.txt" -Encoding UTF8 -Raw | ConvertFrom-Json
+        $TracksResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
         $TrackData = $TracksResponse.Items
 
         while( $TracksResponse.Next ) {
@@ -147,5 +149,5 @@ function Backup-SpotifyUserPlaylists {
         $Playlists | ConvertTo-Json -Depth 10 -Compress | Out-File $OutFilePath
     }
 
-    Remove-Item ".\tmp.txt" -Force
+    Remove-Item $TmpFilePath -Force
 }

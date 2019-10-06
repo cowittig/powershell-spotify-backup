@@ -21,8 +21,9 @@ function Get-SpotifyValidToken {
     param ()
 
     $DateFormatString = "yyyy-MM-dd HH-mm-ss"
+    $SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath 'settings.json')
     
-    $Settings = Get-Content .\settings.json | ConvertFrom-Json
+    $Settings = Get-Content $SettingsPath | ConvertFrom-Json
     $ExpirationDate = [datetime]::ParseExact($Settings.expiration_date, $DateFormatString, $null)
 
     if( $ExpirationDate -lt (Get-Date) ) {
@@ -42,7 +43,7 @@ function Get-SpotifyValidToken {
         $Settings.access_token = $AccessToken
         $Settings.expiration_date = ((Get-Date).AddSeconds(3480)).ToString($DateFormatString)   # 58 minutes
 
-        $Settings | ConvertTo-Json | Out-File settings.json
+        $Settings | ConvertTo-Json | Out-File $SettingsPath
     }
 
     $Settings.access_token

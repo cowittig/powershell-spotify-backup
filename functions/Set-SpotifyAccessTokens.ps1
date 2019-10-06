@@ -47,6 +47,7 @@ function Set-SpotifyAccessTokens {
         [string] $RedirectUri
     )
     $DateFormatString = "yyyy-MM-dd HH-mm-ss"
+    $SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath 'settings.json')
 
     Add-Type -AssemblyName System.Web
     $RedirectUri = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
@@ -84,6 +85,6 @@ function Set-SpotifyAccessTokens {
         access_token= $AccessToken;
         refresh_token=$RefreshToken;
         expiration_date=$ExpirationDate
-    } | ConvertTo-Json | Out-File settings.json
+    } | ConvertTo-Json | Out-File $SettingsPath
 
 }
