@@ -1,4 +1,37 @@
 function Set-SpotifyAccessTokens {
+    <#
+        .SYNOPSIS
+            Initializes the access tokens for the Spotify API.
+
+        .DESCRIPTION
+            Initializes the access tokens for the Spotify API. During the AuthCode request Spotify will prompt
+            the user to allow the App access to playlist and user profile data. This will then redirect to the
+            specified -RedirectUri. Spotify will append the authorization code to the redirected uri. Paste the
+            code into Powershell. The script will then get the access tokens from Spotify and store them in
+            a settings file for future use.
+
+        .PARAMETER ClientId
+            The client id you specified for the App in Spotify.
+
+        .PARAMETER ClientSecret
+            The client secret you specified for the App in Spotify.
+
+        .PARAMETER RedirectURI
+            The redirect uri you specified for the App in Spotify.
+
+        .INPUTS
+            None. You cannot pipe objects to Set-SpotifyAccessTokens.
+
+        .OUTPUTS
+            A settings file in the script root directory containing the spotify access data.
+
+        .EXAMPLE
+            PS> Set-SpotifyAccessTokens -ClientId xxx -ClientSecret xxx -RedirectUri http://example.com
+
+        .Notes
+
+    #>
+
     [CmdLetBinding()]
     param (
         [Parameter(Mandatory=$true)]
