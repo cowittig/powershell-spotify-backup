@@ -1,14 +1,17 @@
 function Get-SpotifyUserPlaylists {
     param (
-        [switch] $FullFile,
-        [switch] $SplitFile,
+        [ValidateSet('single', 'split', 'single-split')]
+        [string] $Mode = 'single',
+
         [string] $OutDir = '.\'
     )
 
-    if( -not $FullFile -and -not $SplitFile ) {
-        Write-Host "Use -FullFile for a single file or -SplitFile for one file per playlists." +
-                   " You can also use both."
-        return
+    if($Mode -eq 'single' -or $Mode -eq 'single-split') {
+        $SingleFile = $True
+    }
+
+    if($Mode -eq 'split' -or $Mode -eq 'single-split') {
+        $SplitFile = $True
     }
 
     if( -not (Test-Path $OutDir) ) {
@@ -101,7 +104,7 @@ function Get-SpotifyUserPlaylists {
         $PlaylistData | ForEach-Object { "id: $($_.Id)    name: $($_.Name)" } | Out-File $OutFilePath
     }
 
-    if( $FullFile ) {
+    if( $SingleFile ) {
         $OutFilePath = (Join-Path -Path $OutDir -ChildPath playlist-backup.json)
         $Playlists | ConvertTo-Json -Depth 10 -Compress | Out-File $OutFilePath
     }
