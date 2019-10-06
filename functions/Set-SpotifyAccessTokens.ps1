@@ -1,4 +1,5 @@
 function Set-SpotifyAccessTokens {
+    [CmdLetBinding()]
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]

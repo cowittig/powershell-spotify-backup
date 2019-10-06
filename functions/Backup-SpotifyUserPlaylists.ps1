@@ -1,4 +1,5 @@
 function Backup-SpotifyUserPlaylists {
+    [CmdLetBinding()]
     param (
         [ValidateSet('single', 'split', 'single-split')]
         [string] $Mode = 'single',

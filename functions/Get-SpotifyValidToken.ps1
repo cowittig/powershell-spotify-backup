@@ -1,5 +1,7 @@
 function Get-SpotifyValidToken {
+    [CmdLetBinding()]
     param ()
+    
     $DateFormatString = "yyyy-MM-dd HH-mm-ss"
     
     $Settings = Get-Content .\settings.json | ConvertFrom-Json
