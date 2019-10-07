@@ -121,6 +121,7 @@ function Backup-SpotifyUserPlaylists {
                 Uri = $TracksResponse.Next
                 Method = 'GET'
                 Headers = @{ Authorization = "Bearer $Token" }
+                OutFile = $TmpFilePath
             }
             Invoke-WebRequest @TracksRequestParams
             Write-Information 'Response received.'
