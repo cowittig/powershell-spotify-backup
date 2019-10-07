@@ -21,7 +21,7 @@ function Get-SpotifyValidToken {
     param ()
 
     $DateFormatString = 'yyyy-MM-dd HH-mm-ss'
-    $SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath 'settings.json')
+    $SettingsPath = (Join-Path -Path $MyInvocation.MyCommand.Module.ModuleBase -ChildPath 'settings.json')
     
     $Settings = Get-Content $SettingsPath | ConvertFrom-Json
     $ExpirationDate = [datetime]::ParseExact($Settings.expiration_date, $DateFormatString, $null)

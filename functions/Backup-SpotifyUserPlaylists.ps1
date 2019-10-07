@@ -15,7 +15,7 @@ function Backup-SpotifyUserPlaylists {
             or both ('single-split'). Default is 'single'.
 
         .PARAMETER OutDir
-            Output directory. Default is the script root directory ($PSScriptRoot)
+            Output directory. Default is the module root directory ($MyInvocation.MyCommand.Module.ModuleBase)
 
         .INPUTS
     	    None. You cannot pipe input to Backup-SpotifyUserPlaylists.
@@ -28,7 +28,7 @@ function Backup-SpotifyUserPlaylists {
             PS> Backup-SpotifyUserPlaylists -Mode single -OutDir C:\spotify-backups\
 
         .Notes
-            Will create a temporary file in the script root directory. Powershell interprets responses from
+            Will create a temporary file in the module root directory. Powershell interprets responses from
             Spotify Web API as encoded in ISO-8859-1, however Spotify uses UTF-8. As a workaround, output from 
             Invoke-WebRequest is directly stored in a temp file and then explicitly loaded with 
             UTF-8 enconfing. The temp file is removed at the end of the script.
@@ -39,8 +39,9 @@ function Backup-SpotifyUserPlaylists {
         [ValidateSet('single', 'split', 'single-split')]
         [string] $Mode = 'single',
 
-        [string] $OutDir = $PSScriptRoot
+        [string] $OutDir = $MyInvocation.MyCommand.Module.ModuleBase
     )
+
 
     if($Mode -eq 'single' -or $Mode -eq 'single-split') {
         $SingleFile = $True
@@ -55,7 +56,9 @@ function Backup-SpotifyUserPlaylists {
         Write-Information "Created output directory $OutDir"
     }
 
-    $TmpFilePath = (Join-Path -Path $PSScriptRoot -ChildPath 'tmp.txt')
+    $ModuleBasePath = $MyInvocation.MyCommand.Module.ModuleBase
+
+    $TmpFilePath = (Join-Path -Path $ModuleBasePath -ChildPath 'tmp.txt')
 
     $Token = Get-SpotifyValidToken
     

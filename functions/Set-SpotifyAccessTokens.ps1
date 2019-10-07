@@ -23,7 +23,7 @@ function Set-SpotifyAccessTokens {
             None. You cannot pipe objects to Set-SpotifyAccessTokens.
 
         .OUTPUTS
-            A settings file in the script root directory containing the spotify access data.
+            A settings file in the module root directory containing the spotify access data.
 
         .EXAMPLE
             PS> Set-SpotifyAccessTokens -ClientId xxx -ClientSecret xxx -RedirectUri http://example.com
@@ -47,7 +47,7 @@ function Set-SpotifyAccessTokens {
         [string] $RedirectUri
     )
     $DateFormatString = 'yyyy-MM-dd HH-mm-ss'
-    $SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath 'settings.json')
+    $SettingsPath = (Join-Path -Path $MyInvocation.MyCommand.Module.ModuleBase -ChildPath 'settings.json')
 
     $RedirectUriEncoded = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
     $ResponseType = 'code'
