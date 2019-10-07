@@ -52,12 +52,14 @@ function Backup-SpotifyUserPlaylists {
 
     if( -not (Test-Path $OutDir) ) {
         mkdir $OutDir | Out-Null        # do not pollute output with mkdir output
+        Write-Information "Created output directory $OutDir"
     }
 
     $TmpFilePath = (Join-Path -Path $PSScriptRoot -ChildPath 'tmp.txt')
 
     $Token = Get-SpotifyValidToken
     
+    Write-Information 'Requesting user profile.'
     $UserRequestParams = @{
         Uri = 'https://api.spotify.com/v1/me'
         Method = 'GET'
@@ -65,7 +67,9 @@ function Backup-SpotifyUserPlaylists {
     }
     $UserResponse = Invoke-WebRequest @UserRequestParams | ConvertFrom-Json
     $UserId = $UserResponse.Id
+    Write-Information 'Spotify User ID received.'
 
+    Write-Information 'Requesting user playlists.'
     $PlaylistsRequestParams = @{
         Uri = "https://api.spotify.com/v1/users/$UserId/playlists?limit=50"
         Method = 'GET'
@@ -73,10 +77,12 @@ function Backup-SpotifyUserPlaylists {
         OutFile = $TmpFilePath
     }
     Invoke-WebRequest @PlaylistsRequestParams
+    Write-Information 'Response received.'
     $PlaylistsResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
     $PlaylistData = $PlaylistsResponse.Items
 
     while( $PlaylistsResponse.Next ) {
+        Write-Information 'Requesting more user playlists.'
         $PlaylistsRequestParams = @{
             Uri = $PlaylistsResponse.Next
             Method = 'GET'
@@ -84,6 +90,7 @@ function Backup-SpotifyUserPlaylists {
             OutFile = $TmpFilePath
         }
         Invoke-WebRequest @PlaylistsRequestParams
+        Write-Information 'Response received.'
         $PlaylistsResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
         $PlaylistData += $PlaylistsResponse.Items
     }
@@ -92,6 +99,7 @@ function Backup-SpotifyUserPlaylists {
         playlists=@()
     }
     $PlaylistData | ForEach-Object -Process {
+        Write-Information "Requesting tracks for playlist $($_.name)."
         $TracksRequestParams = @{
             Uri = "https://api.spotify.com/v1/playlists/$($_.id)/tracks?fields=next," + 
                   "items(track(name,uri,album(name,uri),artists))"
@@ -100,16 +108,19 @@ function Backup-SpotifyUserPlaylists {
             OutFile = $TmpFilePath
         }
         Invoke-WebRequest @TracksRequestParams
+        Write-Information 'Response received.'
         $TracksResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
         $TrackData = $TracksResponse.Items
 
         while( $TracksResponse.Next ) {
+            Write-Information "Requesting more tracks for playlist $($_.name)."
             $TracksRequestParams = @{
                 Uri = $TracksResponse.Next
                 Method = 'GET'
                 Headers = @{ Authorization = "Bearer $Token" }
             }
             $TracksResponse = Invoke-WebRequest @TracksRequestParams | ConvertFrom-Json
+            Write-Information 'Response received.'
             $TrackData += $TracksResponse.Items
         }
 
@@ -136,17 +147,20 @@ function Backup-SpotifyUserPlaylists {
         if( $SplitFile ) {
             $OutFilePath = (Join-Path -Path $OutDir -ChildPath "$($_.Id).json")
             $CurrPlaylist | ConvertTo-Json -Depth 10 -Compress | Out-File $OutFilePath
+            Write-Information "Created file for playlist $($_.name)."
         }
     }  
     
     if( $SplitFile ) {
         $OutFilePath = (Join-Path -Path $OutDir -ChildPath playlists.index)
         $PlaylistData | ForEach-Object { "id: $($_.Id)    name: $($_.Name)" } | Out-File $OutFilePath
+        Write-Information "Created index file for playlist data."
     }
 
     if( $SingleFile ) {
         $OutFilePath = (Join-Path -Path $OutDir -ChildPath playlist-backup.json)
         $Playlists | ConvertTo-Json -Depth 10 -Compress | Out-File $OutFilePath
+        Write-Information "Created backup file."
     }
 
     Remove-Item $TmpFilePath -Force

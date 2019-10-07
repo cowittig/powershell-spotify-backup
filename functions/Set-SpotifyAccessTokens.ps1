@@ -56,8 +56,10 @@ function Set-SpotifyAccessTokens {
                   "&redirect_uri=$RedirectUriEncoded&scope=$Scope"
 
     Start-Process $RequestUri
+    Write-Information 'Started Browser to display Spotify prompt and redirect uri.'
     $AuthCode = Read-Host 'Enter the authorization code'
     
+    Write-Information 'Send request for access and refresh token.'
     $AccessRequestParams = @{
         Uri = 'https://accounts.spotify.com/api/token'
         Method = 'POST'
@@ -71,6 +73,7 @@ function Set-SpotifyAccessTokens {
          }
     }
     $AccessResponse = Invoke-WebRequest @AccessRequestParams | ConvertFrom-Json
+    Write-Information 'Response received'.
 
     $AccessToken = $AccessResponse.access_token
     $RefreshToken = $AccessResponse.refresh_token
@@ -85,4 +88,5 @@ function Set-SpotifyAccessTokens {
         expiration_date=$ExpirationDate
     } | ConvertTo-Json | Out-File $SettingsPath
 
+    Write-Information 'Access data written to settings file.'
 }

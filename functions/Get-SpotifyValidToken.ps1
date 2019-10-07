@@ -27,6 +27,7 @@ function Get-SpotifyValidToken {
     $ExpirationDate = [datetime]::ParseExact($Settings.expiration_date, $DateFormatString, $null)
 
     if( $ExpirationDate -lt (Get-Date) ) {
+        Write-Information 'Access token expired. Requesting new token.'
         $AccessRequestParams = @{
             Uri = 'https://accounts.spotify.com/api/token'
             Method = 'POST'
@@ -38,12 +39,17 @@ function Get-SpotifyValidToken {
             }
         }
         $AccessResponse = Invoke-WebRequest @AccessRequestParams | ConvertFrom-Json
+        Write-Information 'Response received'.
 
         $AccessToken = $AccessResponse.access_token
         $Settings.access_token = $AccessToken
         $Settings.expiration_date = ((Get-Date).AddSeconds(3480)).ToString($DateFormatString)   # 58 minutes
 
         $Settings | ConvertTo-Json | Out-File $SettingsPath
+
+        Write-Information 'Updated access token in settings file.'
+    } else {
+        Write-Information 'Reuse previous access token.'
     }
 
     $Settings.access_token
