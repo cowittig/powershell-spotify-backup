@@ -119,8 +119,9 @@ function Backup-SpotifyUserPlaylists {
                 Method = 'GET'
                 Headers = @{ Authorization = "Bearer $Token" }
             }
-            $TracksResponse = Invoke-WebRequest @TracksRequestParams | ConvertFrom-Json
+            Invoke-WebRequest @TracksRequestParams
             Write-Information 'Response received.'
+            $TracksResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
             $TrackData += $TracksResponse.Items
         }
 
