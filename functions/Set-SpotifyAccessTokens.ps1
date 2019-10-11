@@ -49,6 +49,7 @@ function Set-SpotifyAccessTokens {
     $DateFormatString = 'yyyy-MM-dd HH-mm-ss'
     $SettingsPath = (Join-Path -Path $MyInvocation.MyCommand.Module.ModuleBase -ChildPath 'settings.json')
 
+    Add-Type -AssemblyName System.Web
     $RedirectUriEncoded = [System.Web.HttpUtility]::UrlEncode($RedirectUri)
     $ResponseType = 'code'
     $Scope = 'playlist-read-private'
