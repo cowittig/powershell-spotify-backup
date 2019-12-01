@@ -37,41 +37,29 @@ function Backup-SpotifyUserAlbums {
         Write-Information "Created output directory $OutDir"
     }
 
-    $ModuleBasePath = $MyInvocation.MyCommand.Module.ModuleBase
-
-    $TmpFilePath = (Join-Path -Path $ModuleBasePath -ChildPath 'tmp.txt')
-
     $Token = Get-SpotifyValidToken
 
     Write-Information 'Requesting user albums.'
     $AlbumsRequestParams = @{
-        Uri = "https://api.spotify.com/v1/me/albums?limit=50"
+        Uri = 'https://api.spotify.com/v1/me/albums?offset=0&limit=50'
         Method = 'GET'
         Headers = @{ Authorization = "Bearer $Token" }
-        OutFile = $TmpFilePath
     }
-    Invoke-WebRequest @AlbumsRequestParams
-    Write-Information 'Response received.'
-    $AlbumsResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
-    $Albums = $AlbumsResponse.Items
+    $Result = Get-SpotifyData -RequestParams $AlbumsRequestParams
+    $Albums = $Result.Items
 
-    while( $AlbumsResponse.Next ) {
+    while( $Result.Next ) {
         Write-Information 'Requesting more user albums.'
         $AlbumsRequestParams = @{
-            Uri = $AlbumsResponse.Next
+            Uri = $Result.Next
             Method = 'GET'
             Headers = @{ Authorization = "Bearer $Token" }
-            OutFile = $TmpFilePath
         }
-        Invoke-WebRequest @AlbumsRequestParams
-        Write-Information 'Response received.'
-        $AlbumsResponse = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
-        $Albums += $AlbumsResponse.Items
-    } 
+        $Result = Get-SpotifyData -RequestParams $AlbumsRequestParams
+        $Albums += $Result.Items
+    }
 
     $OutFilePath = (Join-Path -Path $OutDir -ChildPath albums-backup.json)
     $Albums | ConvertTo-Json -Depth 10 -Compress | Out-File $OutFilePath
-    Write-Information "Created albums backup file."
-
-    Remove-Item $TmpFilePath -Force
+    Write-Information 'Created albums backup file.'
 }
