@@ -1,5 +1,20 @@
 function Get-SpotifyData {
     <#
+        .SYNOPSIS
+            Send a Request to the Spotify API.
+
+        .DESCRIPTION
+            Send a Request to the Spotify API. Data will be cached upon first request and on future requests the
+            cached version will be used, if it hasn't changed.
+
+        .PARAMETER RequestParams
+            The request data to send to the Spotify API.
+
+        .INPUTS
+    	    None. You cannot pipe input to Get-SpotifyData.
+
+        .OUTPUTS
+            A hashtable containing the data and next resource uri.
 
         .Notes
             Will create a temporary file in the module root directory. Powershell interprets responses from
