@@ -6,7 +6,7 @@ function Backup-SpotifyUserAlbums {
         .DESCRIPTION
             Exports your favorite albums from Spotify to a JSON file. The albums of the user are requested and 
             the result is stored in a JSON file in the specified output directory or in the module base directory,
-            if no output directory is specified.
+            if no output directory is specified. A cached version will be used if the list of albums has not changed.
 
         .PARAMETER OutDir
             Output directory. Default is the module root directory ($MyInvocation.MyCommand.Module.ModuleBase)
@@ -19,12 +19,6 @@ function Backup-SpotifyUserAlbums {
 
         .EXAMPLE
             PS> Backup-SpotifyUserAlbums -OutDir C:\spotify-backups\
-
-        .Notes
-            Will create a temporary file in the module root directory. Powershell interprets responses from
-            Spotify Web API as encoded in ISO-8859-1, however Spotify uses UTF-8. As a workaround, output from 
-            Invoke-WebRequest is directly stored in a temp file and then explicitly loaded with 
-            UTF-8 enconfing. The temp file is removed at the end of the script.
     #>
 
     [CmdLetBinding()]
