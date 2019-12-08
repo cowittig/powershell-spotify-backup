@@ -1,5 +1,11 @@
 function Get-SpotifyData {
     <#
+
+        .Notes
+            Will create a temporary file in the module root directory. Powershell interprets responses from
+            Spotify Web API as encoded in ISO-8859-1, however Spotify uses UTF-8. As a workaround, output from 
+            Invoke-WebRequest is directly stored in a temp file and then explicitly loaded with 
+            UTF-8 enconfing. The temp file is removed at the end of the script.
     #>
 
     [CmdLetBinding()]
@@ -24,6 +30,7 @@ function Get-SpotifyData {
         $Cache = Get-Content $CacheIndexPath | ConvertFrom-Json
     }
 
+    # check if resource is cached
     $ETag = ''
     $nextUri = ''
     foreach( $Entry in $Cache ){
@@ -59,7 +66,7 @@ function Get-SpotifyData {
             $data = Get-Content $entryFile | ConvertFrom-Json
             Write-Verbose "Use cache entry ($($RequestParams.Uri), $ETag)"
         } else {
-            # data has changed -> update cache index, put new file into cache and removea old file
+            # data has changed -> update cache index, put new file into cache and remove old file
             Write-Verbose "Update cache entry ($($RequestParams.Uri), $ETag)"
             $Response.Content | Out-File $TmpFilePath
             $ResponseData = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
@@ -99,25 +106,28 @@ function Get-SpotifyData {
         $data = $ResponseData.Items
         $nextUri = $ResponseData.Next
         
-        $NewCacheEntry += @{
-            resource = $RequestParams.Uri
-            etag = $ETag
-            next = $nextUri
+        # if the response has an ETag create a cache entry
+        if( $Response.Headers['ETag'] ) {
+            $NewCacheEntry += @{
+                resource = $RequestParams.Uri
+                etag = $ETag
+                next = $nextUri
+            }
+            $Cache += $NewCacheEntry
+
+            # ETag has the format: "hash"
+            # drop both ", so that file name is file system compatible
+            $fileName = $ETag.Substring(1, ($ETag.length - 2))
+
+            $newEntryFile = (Join-Path -Path $CacheDir -ChildPath "$fileName.json")
+            $data | ConvertTo-Json -Depth 10 -Compress | Out-File $newEntryFile
+
+            ConvertTo-Json -InputObject $Cache | Out-File $CacheIndexPath
+
+            Write-Verbose "Created cache entry ($($RequestParams.Uri), $ETag)"
+        } else {
+            Write-Verbose "No ETag for resource: $($RequestParams.Uri)"
         }
-        Write-Host $NewCacheEntry
-        Write-Host $Cache.GetType().FullName
-        $Cache += $NewCacheEntry
-
-        # ETag has the format: "hash"
-        # drop both ", so that file name is file system compatible
-        $fileName = $ETag.Substring(1, ($ETag.length - 2))
-
-        $newEntryFile = (Join-Path -Path $CacheDir -ChildPath "$fileName.json")
-        $data | ConvertTo-Json -Depth 10 -Compress | Out-File $newEntryFile
-
-        ConvertTo-Json -InputObject $Cache | Out-File $CacheIndexPath
-
-        Write-Verbose "Created cache entry ($($RequestParams.Uri), $ETag)"
         
         Remove-Item $TmpFilePath -Force
 
