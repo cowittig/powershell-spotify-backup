@@ -15,12 +15,6 @@ function Get-SpotifyData {
 
         .OUTPUTS
             A hashtable containing the data and next resource uri.
-
-        .Notes
-            Will create a temporary file in the module root directory. Powershell interprets responses from
-            Spotify Web API as encoded in ISO-8859-1, however Spotify uses UTF-8. As a workaround, output from 
-            Invoke-WebRequest is directly stored in a temp file and then explicitly loaded with 
-            UTF-8 enconfing. The temp file is removed at the end of the script.
     #>
 
     [CmdLetBinding()]
@@ -31,7 +25,6 @@ function Get-SpotifyData {
     )
 
     $ModuleBasePath = $MyInvocation.MyCommand.Module.ModuleBase
-    $TmpFilePath = (Join-Path -Path $ModuleBasePath -ChildPath 'tmp.txt')
 
     $CacheDir = (Join-Path -Path $ModuleBasePath -ChildPath 'cache')
     if( -not (Test-Path $CacheDir) ) {
@@ -83,8 +76,7 @@ function Get-SpotifyData {
         } else {
             # data has changed -> update cache index, put new file into cache and remove old file
             Write-Verbose "Update cache entry ($($RequestParams.Uri), $ETag)"
-            $Response.Content | Out-File $TmpFilePath
-            $ResponseData = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
+            $ResponseData = ($Response.Content | ConvertFrom-Json)
             $data = $ResponseData.Items
             $nextUri = $ResponseData.Next
 
@@ -107,8 +99,6 @@ function Get-SpotifyData {
             ConvertTo-Json -InputObject $Cache | Out-File $CacheIndexPath
 
             Write-Verbose "Update cache entry ($($RequestParams.Uri), $UpdatedETag)"
-        
-            Remove-Item $TmpFilePath -Force
 
         }
     } else {
@@ -116,8 +106,7 @@ function Get-SpotifyData {
         
         $Response = Invoke-WebRequest @RequestParams
         $ETag = $Response.Headers['ETag'][0]      # returns a string array with one element -> only need the element
-        $Response.Content | Out-File $TmpFilePath
-        $ResponseData = Get-Content $TmpFilePath -Encoding UTF8 -Raw | ConvertFrom-Json
+        $ResponseData = ($Response.Content | ConvertFrom-Json)
         $data = $ResponseData.Items
         $nextUri = $ResponseData.Next
         
@@ -143,8 +132,6 @@ function Get-SpotifyData {
         } else {
             Write-Verbose "No ETag for resource: $($RequestParams.Uri)"
         }
-        
-        Remove-Item $TmpFilePath -Force
 
     }
 
