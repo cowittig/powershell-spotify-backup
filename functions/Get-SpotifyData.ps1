@@ -21,7 +21,11 @@ function Get-SpotifyData {
     param (
         [Parameter(Mandatory=$true)]
         [ValidateNotNullOrEmpty()]
-        [hashtable] $RequestParams
+        [hashtable] $RequestParams,
+
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $FilterString
     )
 
     $ModuleBasePath = $MyInvocation.MyCommand.Module.ModuleBase
@@ -41,10 +45,12 @@ function Get-SpotifyData {
     # check if resource is cached
     $ETag = ''
     $nextUri = ''
+    $CachedFilterString
     foreach( $Entry in $Cache ){
         if( $Entry.resource -eq $RequestParams.Uri ){
             $ETag = $Entry.etag
             $nextUri = $Entry.next
+            $CachedFilterString = $Entry.filter
             break
         }
     }
@@ -54,7 +60,9 @@ function Get-SpotifyData {
         # drop both ", so that file name is file system compatible
         $TrimmedETag = $ETag.Substring(1, $ETag.length - 2)
 
-        $RequestParams.Headers['If-None-Match'] = $ETag
+        if( $CachedFilterString -eq $FilterString ) {
+            $RequestParams.Headers['If-None-Match'] = $ETag
+        }
 
         try {
             $Response = Invoke-WebRequest @RequestParams
@@ -77,14 +85,16 @@ function Get-SpotifyData {
             # data has changed -> update cache index, put new file into cache and remove old file
             Write-Verbose "Update cache entry ($($RequestParams.Uri), $ETag)"
             $ResponseData = ($Response.Content | ConvertFrom-Json)
-            $data = $ResponseData.Items
             $nextUri = $ResponseData.Next
+
+            $data = Filter-SpotifyAPIResponse -Data $ResponseData.Items -Filter $FilterString
 
             $UpdatedETag = $Response.Headers['ETag'][0]   # returns string array with 1 element -> only need the element
             foreach( $Entry in $Cache ){
                 if( $Entry.resource -eq $RequestParams.Uri ){
                     $Entry.etag = $UpdatedETag
                     $Entry.next = $nextUri
+                    $Entry.filter = $FilterString
                     break
                 }
             }
@@ -107,8 +117,9 @@ function Get-SpotifyData {
         $Response = Invoke-WebRequest @RequestParams
         $ETag = $Response.Headers['ETag'][0]      # returns a string array with one element -> only need the element
         $ResponseData = ($Response.Content | ConvertFrom-Json)
-        $data = $ResponseData.Items
         $nextUri = $ResponseData.Next
+
+        $data = Filter-SpotifyAPIResponse -Data $ResponseData.Items -Filter $FilterString
         
         # if the response has an ETag create a cache entry
         if( $Response.Headers['ETag'] ) {
@@ -116,6 +127,7 @@ function Get-SpotifyData {
                 resource = $RequestParams.Uri
                 etag = $ETag
                 next = $nextUri
+                filter = $FilterString
             }
             $Cache += $NewCacheEntry
 

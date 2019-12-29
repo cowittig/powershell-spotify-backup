@@ -33,6 +33,7 @@ function Backup-SpotifyUserPlaylists {
         [ValidateSet('single', 'split', 'single-split')]
         [string] $Mode = 'single',
 
+        [string] $Filter = 'added_at, track(album(name,uri), artists(name,uri), name, uri)',
         [string] $OutDir = $MyInvocation.MyCommand.Module.ModuleBase
     )
 
@@ -68,7 +69,7 @@ function Backup-SpotifyUserPlaylists {
         Method = 'GET'
         Headers = @{ Authorization = "Bearer $Token" }
     }
-    $Result = Get-SpotifyData -RequestParams $PlaylistsRequestParams
+    $Result = Get-SpotifyData -RequestParams $PlaylistsRequestParams -Filter '*'
     $PlaylistData = $Result.Items
 
     while( $Result.Next ) {
@@ -78,7 +79,7 @@ function Backup-SpotifyUserPlaylists {
             Method = 'GET'
             Headers = @{ Authorization = "Bearer $Token" }
         }
-        $Result = Get-SpotifyData -RequestParams $PlaylistsRequestParams
+        $Result = Get-SpotifyData -RequestParams $PlaylistsRequestParams -Filter '*'
         $PlaylistData += $Result.Items
     }
     
@@ -88,12 +89,12 @@ function Backup-SpotifyUserPlaylists {
 
         Write-Information "Requesting tracks for playlist $($pl.name)."
         $TracksRequestParams = @{
-            Uri = "https://api.spotify.com/v1/playlists/$($pl.id)/tracks?offset=0&limit=100&fields=next," + 
-                  "items(track(name,uri,album(name,uri),artists))"
+            Uri = "https://api.spotify.com/v1/playlists/$($pl.id)/tracks?offset=0&limit=100&" + 
+                  "fields=next,items($Filter)"
             Method = 'GET'
             Headers = @{ Authorization = "Bearer $Token" }
         }
-        $Result = Get-SpotifyData -RequestParams $TracksRequestParams
+        $Result = Get-SpotifyData -RequestParams $TracksRequestParams -Filter $Filter
         $TrackData += $Result.Items
 
         while( $Result.Next ) {
@@ -103,7 +104,7 @@ function Backup-SpotifyUserPlaylists {
                 Method = 'GET'
                 Headers = @{ Authorization = "Bearer $Token" }
             }
-            $Result = Get-SpotifyData -RequestParams $TracksRequestParams
+            $Result = Get-SpotifyData -RequestParams $TracksRequestParams -Filter $Filter
             $TrackData += $Result.Items
         }
 

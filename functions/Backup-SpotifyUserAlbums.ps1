@@ -23,6 +23,7 @@ function Backup-SpotifyUserAlbums {
 
     [CmdLetBinding()]
     param (
+        [string] $Filter = 'added_at, album(artists(name, uri), name, release_date, uri)',
         [string] $OutDir = $MyInvocation.MyCommand.Module.ModuleBase
     )
 
@@ -39,7 +40,7 @@ function Backup-SpotifyUserAlbums {
         Method = 'GET'
         Headers = @{ Authorization = "Bearer $Token" }
     }
-    $Result = Get-SpotifyData -RequestParams $AlbumsRequestParams
+    $Result = Get-SpotifyData -RequestParams $AlbumsRequestParams -Filter $Filter
     $Albums = $Result.Items
 
     while( $Result.Next ) {
@@ -49,7 +50,7 @@ function Backup-SpotifyUserAlbums {
             Method = 'GET'
             Headers = @{ Authorization = "Bearer $Token" }
         }
-        $Result = Get-SpotifyData -RequestParams $AlbumsRequestParams
+        $Result = Get-SpotifyData -RequestParams $AlbumsRequestParams -Filter $Filter
         $Albums += $Result.Items
     }
 

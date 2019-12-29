@@ -8,6 +8,7 @@
         '.\functions\Set-SpotifyAccessTokens.ps1',
         '.\functions\Get-SpotifyValidToken.ps1',
         '.\functions\Get-SpotifyData.ps1',
+        '.\functions\Filter-SpotifyAPIResponse.ps1',
         '.\functions\Backup-SpotifyUserPlaylists.ps1',
         '.\functions\Backup-SpotifyUserAlbums.ps1',
         '.\functions\Backup-SpotifyUserSongs.ps1'
