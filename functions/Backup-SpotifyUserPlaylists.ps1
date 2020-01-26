@@ -14,6 +14,14 @@ function Backup-SpotifyUserPlaylists {
             Specifies whether the output is a single file ('single'), one file per playlist ('split')
             or both ('single-split'). Default is 'single'.
 
+        .PARAMETER Filter
+            Filter the attributes that will be stored on disk. Only the attributes in the filter string will be
+            stored. Check the API reference for playlists at https://developer.spotify.com/documentation/web-api/reference/playlists/get-playlist/
+            for a list of returned attributes. You can drill down into nested objects using
+            the notation: nested_object(attribute, attribute). 
+            For no filtering, use '-Filter *'
+            Default filter is: added_at, track(album(name,uri), artists(name,uri), name, uri)
+
         .PARAMETER OutDir
             Output directory. Default is the module root directory ($MyInvocation.MyCommand.Module.ModuleBase)
 
@@ -26,6 +34,9 @@ function Backup-SpotifyUserPlaylists {
 
         .EXAMPLE
             PS> Backup-SpotifyUserPlaylists -Mode single -OutDir C:\spotify-backups\
+
+        .EXAMPLE
+            PS> Backup-SpotifyUserPlaylists -Mode split -OutDir C:\spotify-backups\ -Filter 'track(album, artists), name, uri'
     #>
 
     [CmdLetBinding()]

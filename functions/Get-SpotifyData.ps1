@@ -10,6 +10,9 @@ function Get-SpotifyData {
         .PARAMETER RequestParams
             The request data to send to the Spotify API.
 
+        .PARAMETER FilterString
+            A filter specifiying which attributes will be stored on disk.
+
         .INPUTS
     	    None. You cannot pipe input to Get-SpotifyData.
 

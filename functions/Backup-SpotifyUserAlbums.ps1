@@ -8,6 +8,14 @@ function Backup-SpotifyUserAlbums {
             the result is stored in a JSON file in the specified output directory or in the module base directory,
             if no output directory is specified. A cached version will be used if the list of albums has not changed.
 
+        .PARAMETER Filter
+            Filter the attributes that will be stored on disk. Only the attributes in the filter string will be
+            stored. Check the API reference for saved albums at https://developer.spotify.com/documentation/web-api/reference/library/get-users-saved-albums/
+            for a list of returned attributes. You can drill down into nested objects using
+            the notation: nested_object(attribute, attribute). 
+            For no filtering, use '-Filter *'
+            Default filter is: added_at, album(artists(name, uri), name, release_date, uri)
+
         .PARAMETER OutDir
             Output directory. Default is the module root directory ($MyInvocation.MyCommand.Module.ModuleBase)
 
@@ -19,6 +27,9 @@ function Backup-SpotifyUserAlbums {
 
         .EXAMPLE
             PS> Backup-SpotifyUserAlbums -OutDir C:\spotify-backups\
+
+        .EXAMPLE
+            PS> Backup-SpotifyUserAlbums -OutDir C:\spotify-backups\ -Filter 'album(artists, name, uri)'
     #>
 
     [CmdLetBinding()]
