@@ -2,6 +2,8 @@
 
 Backup your Spotify Playlists, Saved Albums and Saved Tracks as JSON files using Powershell.
 
+You can find the current release at: https://github.com/cowittig/powershell-spotify-backup/releases
+
 ## Setup
 Create an App on the Spotify Developer website. You have to setup a Redirect URI. During authentification Spotify will redirect and send an authentification code to this URI. The code then has to be manually provide to the Powershell script (see below). You can use  https://cowittig.github.io/powershell-spotify-backup/ for the Redirect URI, the page will display the code if authentification was successful.
 
